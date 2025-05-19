@@ -8,3 +8,4 @@ resources:
   - notification-service/
   - nlp-service/
   - frontend/
+  - ingress.yaml
