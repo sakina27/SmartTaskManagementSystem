@@ -23,7 +23,9 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        sh 'kubectl apply -f task-manager-k8s/base/'
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+                  sh 'kubectl apply -f task-manager-k8s/base/ --validate=false'
+                }
       }
     }
   }
