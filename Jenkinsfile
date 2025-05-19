@@ -1,6 +1,10 @@
 pipeline {
   agent any
 
+  environment {
+    NAMESPACE = "elk"
+    HELM_REPO = "https://helm.elastic.co"
+  }
 
   stages {
     stage('Checkout Code') {
@@ -26,8 +30,47 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                  sh 'kubectl apply -k task-manager-k8s/base/'
-                }
+          sh 'kubectl apply -k task-manager-k8s/base/'
+        }
+      }
+    }
+
+    stage('Add Elastic Helm Repo') {
+      steps {
+        sh '''
+        helm repo add elastic $HELM_REPO || true
+        helm repo update
+        '''
+      }
+    }
+
+    stage('Create ELK Namespace') {
+      steps {
+        sh 'kubectl create namespace $NAMESPACE || echo "Namespace $NAMESPACE already exists"'
+      }
+    }
+
+    stage('Deploy Elasticsearch') {
+      steps {
+        sh 'helm upgrade --install elasticsearch elastic/elasticsearch -n $NAMESPACE -f elk-config/elasticsearch-values.yaml'
+      }
+    }
+
+    stage('Deploy Kibana') {
+      steps {
+        sh 'helm upgrade --install kibana elastic/kibana -n $NAMESPACE -f elk-config/kibana-values.yaml'
+      }
+    }
+
+    stage('Deploy Filebeat') {
+      steps {
+        sh 'helm upgrade --install filebeat elastic/filebeat -n $NAMESPACE -f elk-config/filebeat-values.yaml'
+      }
+    }
+
+    stage('Verify ELK Deployment') {
+      steps {
+        sh 'kubectl get pods -n $NAMESPACE'
       }
     }
   }

@@ -71,6 +71,7 @@
     build:
       path: "{{ project_root }}"
       dockerfile: "{{ project_root }}/frontend/Dockerfile"
+      nocache: yes
     tag: latest
     push: true
     debug: true
