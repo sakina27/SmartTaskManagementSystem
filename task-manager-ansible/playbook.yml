@@ -1,6 +1,6 @@
 - name: Setup Task Manager Project
   hosts: localhost
-  become: true
+  become: false
   vars_files:
     - group_vars/vault.yml
   roles:
