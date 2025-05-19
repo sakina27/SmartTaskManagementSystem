@@ -15,6 +15,7 @@ spec:
       containers:
         - name: task-service
           image: sakina2726/task-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           readinessProbe:
