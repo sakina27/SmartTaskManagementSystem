@@ -14,6 +14,8 @@ services:
 
   user-service:
     image: sakina2726/user-service:latest
+    ports:
+      - "8082:8080"
     depends_on:
       - mongodb
 
