@@ -66,7 +66,7 @@ public class SecurityConfig {
                 .oauth2Login() // Enable OAuth2 login (Google login)
                 .loginPage("/login") // Customize login page if needed
                 .redirectionEndpoint()
-                .baseUri("http://localhost:3000/login/oauth2/code/google")// Set custom redirect URI
+                .baseUri("http://user.local:30443/login/oauth2/code/google")// Set custom redirect URI
                 .and()
                 .userInfoEndpoint()
                 .userService(customOAuth2UserService) // Use the custom OAuth2 user service for processing OAuth2 login
