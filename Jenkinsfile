@@ -14,7 +14,7 @@ pipeline {
         dir('task-manager-ansible') {
           withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
               sh 'echo "$VAULT_PASS" > vault_pass.txt'
-              sh 'ansible-playbook -i inventory playbook.yml --vault-password-file vault_pass.txt'
+              sh 'ansible-playbook -i inventory playbook.yml --vault-password-file vault_pass.txt --become'
           }
 
         }
