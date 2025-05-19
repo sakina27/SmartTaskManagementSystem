@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+torch
+transformers
+faster-whisper
+dateparser
+pydantic
+sentencepiece
+python-multipart

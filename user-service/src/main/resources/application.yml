@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+internal:
+  token: d48f1e3a-72e4-4a41-9df5-6f9b9ea71234
+
+spring:
+  data:
+    mongodb:
+      host: mongodb
+      port: 27017
+      database: user_service_db
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: CLIENT_ID
+            client-secret: CLIENT_SECRET
+            scope:
+              - email
+              - profile
+              - https://www.googleapis.com/auth/calendar.readonly  # <--- Add this
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+
+jwt:
+  secret-key: cr666N7wIV+JHnv78pWtcfAekL4YXd9gbnJMs8SJ9sI=
+  expiration-time: 3600000
+
+
+

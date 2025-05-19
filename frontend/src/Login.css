@@ -1,0 +1,54 @@
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #74ebd5, #acb6e5);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.form-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    width: 350px;
+    text-align: center;
+}
+
+.form-card h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.form-card input {
+    width: 100%;
+    padding: 12px 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.form-card button {
+    background: #0077ff;
+    color: white;
+    border: none;
+    padding: 12px 0;
+    width: 100%;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+}
+
+.form-card button:hover {
+    background: #005fcc;
+}
+
+.form-card span {
+    color: #0077ff;
+    cursor: pointer;
+    font-weight: 500;
+}

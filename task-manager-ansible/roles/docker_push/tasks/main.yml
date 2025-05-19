@@ -1,0 +1,70 @@
+- name: Log in to Docker Hub
+  community.docker.docker_login:
+    username: "{{ dockerhub_username }}"
+    password: "{{ dockerhub_password }}"
+
+- name: Build and push task-service image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/task-service"
+    source: build
+    build:
+      path: "{{ project_root }}"
+      dockerfile: "{{ project_root }}/task-service/Dockerfile"
+    tag: latest
+    push: true
+    debug: true
+
+- name: Build and push user-service image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/user-service"
+    source: build
+    build:
+      path: "{{ project_root }}"
+      dockerfile: "{{ project_root }}/user-service/Dockerfile"
+    tag: latest
+    push: true
+    debug: true
+
+- name: Build and push comment-service image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/comment-service"
+    source: build
+    build:
+      path: "{{ project_root }}"
+      dockerfile: "{{ project_root }}/comment-service/Dockerfile"
+    tag: latest
+    push: true
+    debug: true
+
+- name: Build and push notification-service image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/notification-service"
+    source: build
+    build:
+      path: "{{ project_root }}"
+      dockerfile: "{{ project_root }}/notification-service/Dockerfile"
+    tag: latest
+    push: true
+    debug: true
+
+- name: Build and push nlp-service image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/nlp-service"
+    source: build
+    build:
+      path: "{{ project_root }}/task-manager-nlp"
+      dockerfile: "{{ project_root }}/task-manager-nlp/Dockerfile"
+    tag: latest
+    push: true
+    debug: true
+
+- name: Build and push frontend image
+  community.docker.docker_image:
+    name: "{{ dockerhub_username }}/frontend"
+    source: build
+    build:
+      path: "{{ project_root }}"
+      dockerfile: "{{ project_root }}/frontend/Dockerfile"
+    tag: latest
+    push: true
+    debug: true

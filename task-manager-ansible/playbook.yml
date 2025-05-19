@@ -1,0 +1,11 @@
+- name: Setup Task Manager Project
+  hosts: localhost
+  become: true
+  vars_files:
+    - group_vars/vault.yml
+  roles:
+    - docker
+    - docker_push
+    - project
+  collections:
+    - community.docker
