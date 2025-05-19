@@ -13,7 +13,7 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
 
 
 - name: Build and push user-service image
@@ -26,7 +26,7 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
 
 - name: Build and push comment-service image
   community.docker.docker_image:
@@ -38,7 +38,7 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
 
 - name: Build and push notification-service image
   community.docker.docker_image:
@@ -50,7 +50,7 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
 
 - name: Build and push nlp-service image
   community.docker.docker_image:
@@ -62,7 +62,7 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
 
 - name: Build and push frontend image
   community.docker.docker_image:
@@ -74,4 +74,4 @@
     tag: latest
     push: true
     debug: true
-    nocache: true
+
