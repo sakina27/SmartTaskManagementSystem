@@ -2,19 +2,19 @@ import axios from 'axios';
 
 // Create axios instances for each service
 export const taskServiceApi = axios.create({
-    baseURL: 'http://localhost:8081/api',
+    baseURL: 'http://task-service:8080/api',
 });
 
 export const userServiceApi = axios.create({
-    baseURL: 'http://localhost:8082/api',
+    baseURL: 'http://user-service:8080/api',
 });
 
 export const commentServiceApi = axios.create({
-    baseURL: 'http://localhost:8083/api',
+    baseURL: 'http://comment-service:8080/api',
 });
 
 export const notificationServiceApi = axios.create({
-    baseURL: 'http://localhost:8084/api',
+    baseURL: 'http://notification-service:8080/api',
 });
 
 // Function to add interceptor for auth token

@@ -14,7 +14,9 @@ spec:
     spec:
       containers:
         - name: mongodb
-          image: mongo
+          image: mongo:latest
+          command: ["mongod"]
+          args: ["--bind_ip_all"]
           ports:
             - containerPort: 27017
           readinessProbe:
@@ -22,3 +24,5 @@ spec:
               port: 27017
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 3
