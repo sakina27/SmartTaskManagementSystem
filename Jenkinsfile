@@ -5,7 +5,7 @@ pipeline {
   stages {
     stage('Checkout Code') {
       steps {
-        git credentialsId: 'github-credentials', url: 'https://github.com/your/repo.git'
+        git credentialsId: 'github-ssh-key', url: 'git@github.com:sakina27/SmartTaskManagement.git'
       }
     }
 
