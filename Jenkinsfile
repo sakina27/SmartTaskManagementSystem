@@ -50,13 +50,17 @@ pipeline {
       }
     }
 
-    withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-      sh '''
-        export KUBECONFIG=$KUBECONFIG
-        helm upgrade --install elasticsearch elastic/elasticsearch -n elk -f elk-config/elasticsearch-values.yaml
-        helm upgrade --install kibana elastic/kibana -n elk -f elk-config/kibana-values.yaml
-        helm upgrade --install filebeat elastic/filebeat -n elk -f elk-config/filebeat-values.yaml
-      '''
+    stage('Deploy Elasticsearch') {
+      steps {
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh '''
+            export KUBECONFIG=$KUBECONFIG
+            helm upgrade --install elasticsearch elastic/elasticsearch -n elk -f elk-config/elasticsearch-values.yaml
+            helm upgrade --install kibana elastic/kibana -n elk -f elk-config/kibana-values.yaml
+            helm upgrade --install filebeat elastic/filebeat -n elk -f elk-config/filebeat-values.yaml
+          '''
+        }
+      }
     }
 
     stage('Deploy Kibana') {
