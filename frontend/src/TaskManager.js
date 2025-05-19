@@ -20,6 +20,7 @@ function TaskManager() {
     const [expandedTasks, setExpandedTasks] = useState({});
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedCommentContent, setEditedCommentContent] = useState('');
+    const [activeView, setActiveView] = useState('create-task');
 
     useEffect(() => {
         const savedUserId = localStorage.getItem('userId');
@@ -29,8 +30,10 @@ function TaskManager() {
     }, []);
 
     useEffect(() => {
-        if (userId) fetchTasks();
-    }, [userId]);
+        if (userId && activeView === 'show-tasks') {
+            fetchTasks();
+        }
+    }, [userId, activeView]);
 
     const fetchTasks = async () => {
         setLoading(true);
@@ -127,7 +130,8 @@ function TaskManager() {
             setDescription('');
             setDueDate('');
             setPriority('medium');
-            fetchTasks();
+            setActiveView('show-tasks');
+            
         } catch (err) {
             console.error("Failed to add task:", err);
             alert("Failed to add task");
@@ -145,7 +149,7 @@ function TaskManager() {
                 params: { accessToken, userId }
             });
             alert("Fetched tasks from Google Calendar!");
-            fetchTasks();
+            setActiveView('show-tasks');
         } catch (err) {
             console.error("Failed to fetch from Google Calendar:", err);
             alert("Failed to fetch from Google Calendar");
@@ -240,27 +244,55 @@ function TaskManager() {
             alert('Failed to update task status');
         }
     };
+    
+    const handleLogout = () => {
+        localStorage.clear();
+        window.location.href = '/';
+    };
 
     return (
         <div className="task-container">
-            <div className="task-form card">
-                <h2>Create New Task</h2>
-                <form onSubmit={handleAddTask}>
-                    <input
-                        type="text"
-                        placeholder="Task Title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        required
-                        className="input-field"
-                    />
-                    <textarea
-                        placeholder="Description"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                        className="textarea-field"
-                    />
+{/* Navigation Bar */}
+            <div className="navbar">
+                <h2 className="logo">Smart Task Manager</h2>
+                <div className="nav-links">
+                    <button
+                        className={activeView === 'create-task' ? 'nav-btn active' : 'nav-btn'}
+                        onClick={() => setActiveView('create-task')}
+                    >
+                        Create Task
+                    </button>
+                    <button
+                        className={activeView === 'show-tasks' ? 'nav-btn active' : 'nav-btn'}
+                        onClick={() => {
+                            setActiveView('show-tasks');
+                            fetchTasks();
+                        }}
+                    >
+                        Show Tasks
+                    </button>
+                    <button
+                        className={activeView === 'google-calendar' ? 'nav-btn active' : 'nav-btn'}
+                        onClick={() => {
+                            setActiveView('google-calendar');
+                            handleFetchFromGoogleCalendar();
+                        }}
+                    >
+                        Fetch from Google
+                    </button>
+                    <button className="nav-btn logout" onClick={handleLogout}>
+                        Logout
+                    </button>
+                </div>
+            </div>
+            {/* Create Task View */}
+            {activeView === 'create-task' && (
+                <div className="task-form">
+                    <h2>Create Task</h2>
+                    <form onSubmit={handleAddTask}>
+                        <input type="text" placeholder="Task Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                        <input type="text" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required />
+
                     <button
                         type="button"
                         onClick={handleAnalyzeDescription}
@@ -306,31 +338,21 @@ function TaskManager() {
                         {isRecording ? ' Stop Recording' : ' Start Recording'}
                     </button>
                 </div>
-
-                <div className="google-sync card">
-                    <h3>Google Calendar Sync</h3>
-                    <input
-                        type="text"
-                        placeholder="Access Token"
-                        value={accessToken}
-                        disabled
-                        className="input-field"
-                    />
-                    <button onClick={handleFetchFromGoogleCalendar} disabled={loading} className="btn-secondary">
-                        Fetch from Google Calendar
-                    </button>
                 </div>
-            </div>
+            )}
 
-            <div className="task-list">
-                <h3>Tasks for User ID: <span className="user-id">{userId}</span></h3>
-                {loading ? (
-                    <p>Loading tasks...</p>
-                ) : tasks.length === 0 ? (
-                    <p>No tasks found.</p>
-                ) : (
-                    tasks.map((task) => (
-                        <div key={task.id} className={`task-card priority-${task.priority.toLowerCase()}`}>
+
+            {/* Show Tasks View */}
+            {activeView === 'show-tasks' && (
+                <div className="task-list">
+                    <h3>Tasks</h3>
+                    {loading ? (
+                        <p>Loading tasks...</p>
+                    ) : tasks.length === 0 ? (
+                        <p>No tasks found.</p>
+                    ) : (
+                        tasks.map((task) => (
+                            <div key={task.id} className="task-card">
                             <h4>{task.title}</h4>
                             <p className="description">{task.description}</p>
                             <p className="due-date"><strong>Due:</strong> {task.dueDate}</p>
@@ -393,8 +415,10 @@ function TaskManager() {
                     ))
                 )}
             </div>
+            )}
         </div>
-    );
+            )
 }
 
 export default TaskManager;
+
