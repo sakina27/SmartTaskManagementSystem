@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27018:27017"
+
+  task-service:
+    image: sakina2726/task-service:latest
+    ports:
+      - "8081:8080"
+
+  user-service:
+    image: sakina2726/user-service:latest
+    depends_on:
+      - mongodb
+
+  comment-service:
+    image: sakina2726/comment-service:latest
+    ports:
+      - "8083:8080"
+
+  notification-service:
+    image: sakina2726/notification-service:latest
+    ports:
+      - "8084:8080"
+
+  frontend:
+    image: sakina2726/frontend:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - task-service
+      - user-service
+      - comment-service
+      - notification-service
+
+  nlp-service:
+    image: sakina2726/nlp-service:latest
+    ports:
+      - "5001:5001"
+    depends_on:
+      - notification-service
