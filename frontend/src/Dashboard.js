@@ -16,7 +16,7 @@ function Dashboard() {
 
     const fetchTasks = async () => {
         try {
-            const res = await axios.get("http://user.local/api/tasks");
+            const res = await axios.get("http://user.local:30080/api/tasks");
             setTasks(res.data);
         } catch (err) {
             console.error("Failed to fetch tasks", err);
@@ -26,7 +26,7 @@ function Dashboard() {
     const handleCreateTask = async (e) => {
         e.preventDefault();
         try {
-            await axios.post("http://user.local/api/tasks", {
+            await axios.post("http://user.local:30080/api/tasks", {
                 title,
                 description
             });

@@ -35,7 +35,7 @@ function TaskManager() {
     const fetchTasks = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(`http://user.local/api/tasks/user/${userId}`);
+            const res = await axios.get(`http://user.local:30080/api/tasks/user/${userId}`);
             setTasks(res.data);
         } catch (err) {
             console.error("Error fetching tasks:", err);
@@ -47,7 +47,7 @@ function TaskManager() {
 
     const fetchComments = async (taskId) => {
         try {
-            const res = await axios.get(`http://user.local/api/comments/task/${taskId}`);
+            const res = await axios.get(`http://user.local:30080/api/comments/task/${taskId}`);
             setCommentsMap(prev => ({ ...prev, [taskId]: res.data }));
         } catch (err) {
             console.error("Failed to fetch comments:", err);
@@ -63,7 +63,7 @@ function TaskManager() {
     const handleAddComment = async (taskId) => {
         if (!commentText.trim()) return;
         try {
-            await axios.post(`http://user.local/api/comments`, {
+            await axios.post(`http://user.local:30080/api/comments`, {
                 taskId,
                 userId,
                 content: commentText
@@ -79,7 +79,7 @@ function TaskManager() {
     const handleDeleteComment = async (commentId, taskId) => {
         if (!window.confirm("Are you sure you want to delete this comment?")) return;
         try {
-            await axios.delete(`http://user.local/api/comments/${commentId}`);
+            await axios.delete(`http://user.local:30080/api/comments/${commentId}`);
             await fetchComments(taskId);
         } catch (err) {
             console.error("Failed to delete comment:", err);
@@ -99,7 +99,7 @@ function TaskManager() {
 
     const handleUpdateComment = async (comment, taskId) => {
         try {
-            await axios.put(`http://user.local/api/comments/${comment.id}`, {
+            await axios.put(`http://user.local:30080/api/comments/${comment.id}`, {
                 ...comment,
                 content: editedCommentContent
             });
@@ -114,7 +114,7 @@ function TaskManager() {
     const handleAddTask = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://user.local/api/tasks', {
+            await axios.post('http://user.local:30080/api/tasks', {
                 title,
                 description,
                 dueDate,
@@ -141,7 +141,7 @@ function TaskManager() {
         }
 
         try {
-            await axios.get(`http://user.local/api/tasks/fetch-google-calendar`, {
+            await axios.get(`http://user.local:30080/api/tasks/fetch-google-calendar`, {
                 params: { accessToken, userId }
             });
             alert("Fetched tasks from Google Calendar!");
@@ -156,7 +156,7 @@ function TaskManager() {
         if (!description) return;
         try {
             setLoading(true);
-            const res = await axios.post('http://user.local/text-to-task', { text: description });
+            const res = await axios.post('http://user.local:30080/text-to-task', { text: description });
             const extracted = res.data.task;
             if (extracted) {
                 if (extracted.description) setDescription(extracted.description);
@@ -191,7 +191,7 @@ function TaskManager() {
 
                 try {
                     setLoading(true);
-                    const nlpRes = await axios.post("http://user.local/audio-to-task", formData);
+                    const nlpRes = await axios.post("http://user.local:30080/audio-to-task", formData);
                     const extractedTask = nlpRes.data.task;
                     if (extractedTask) {
                         if (extractedTask.title) setTitle(extractedTask.title);
@@ -233,7 +233,7 @@ function TaskManager() {
     const toggleTaskStatus = async (taskId, currentStatus) => {
         const newStatus = currentStatus === 'Complete' ? 'Incomplete' : 'Complete';
         try {
-            await axios.patch(`http://user.local/api/tasks/${taskId}`, { status: newStatus });
+            await axios.patch(`http://user.local:30080/api/tasks/${taskId}`, { status: newStatus });
             fetchTasks();
         } catch (err) {
             console.error('Failed to update task status:', err);
