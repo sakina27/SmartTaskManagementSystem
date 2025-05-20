@@ -55,8 +55,8 @@ pipeline {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh '''
             helm upgrade --install elasticsearch elastic/elasticsearch -n elk --create-namespace -f elk-config/elasticsearch-values.yaml --kubeconfig $KUBECONFIG
-            helm upgrade --install kibana elastic/kibana -n elk --create-namespace -f elk-config/kibana-values.yaml --kubeconfig $KUBECONFIG
-            helm upgrade --install filebeat elastic/filebeat -n elk --create-namespace -f elk-config/filebeat-values.yaml --kubeconfig $KUBECONFIG
+            helm upgrade --install kibana elastic/kibana -n elk --create-namespace -f elk-config/kibana-values.yaml --kubeconfig $KUBECONFIG --force
+            helm upgrade --install filebeat elastic/filebeat -n elk --create-namespace -f elk-config/filebeat-values.yaml --kubeconfig $KUBECONFIG --force
           '''
         }
       }
