@@ -10,7 +10,7 @@ filebeatConfig:
       - add_host_metadata: {}
 
     output.elasticsearch:
-      hosts: ['http://elasticsearch-master.elk.svc.cluster.local:9200']
+      hosts: ['https://elasticsearch-master.elk.svc.cluster.local:9200']
 
 daemonset:
   enabled: true
