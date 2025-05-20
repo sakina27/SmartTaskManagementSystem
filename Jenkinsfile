@@ -17,11 +17,10 @@ pipeline {
       steps {
         dir('task-manager-ansible') {
           withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
-            sh 'echo "$VAULT_PASS" > vault_pass.txt'
-            sh "ansible-playbook -i inventory playbook.yml \
-                 --vault-password-file vault_pass.txt \
-                 -e project_root=${env.WORKSPACE} \
-                 --become"
+            sh '''
+              echo "$VAULT_PASS" > vault_pass.txt
+              ansible-playbook -i inventory playbook.yml --vault-password-file vault_pass.txt -e project_root=${WORKSPACE} --become
+            '''
           }
         }
       }
@@ -38,46 +37,64 @@ pipeline {
     stage('Add Elastic Helm Repo') {
       steps {
         sh '''
-        helm repo add elastic $HELM_REPO || true
-        helm repo update
+          helm repo add elastic $HELM_REPO || true
+          helm repo update
         '''
       }
     }
 
     stage('Create ELK Namespace') {
       steps {
-        sh 'kubectl create namespace $NAMESPACE || echo "Namespace $NAMESPACE already exists"'
+        sh "kubectl create namespace ${NAMESPACE} || echo 'Namespace ${NAMESPACE} already exists'"
       }
     }
 
-    stage('Deploy Elasticsearch') {
+    stage('Deploy ELK Stack') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-          sh '''
-            helm upgrade --install elasticsearch elastic/elasticsearch -n elk --create-namespace -f elk-config/elasticsearch-values.yaml --kubeconfig $KUBECONFIG
-            helm upgrade --install kibana elastic/kibana -n elk --create-namespace -f elk-config/kibana-values.yaml --kubeconfig $KUBECONFIG --force
-            helm upgrade --install filebeat elastic/filebeat -n elk --create-namespace -f elk-config/filebeat-values.yaml --kubeconfig $KUBECONFIG --force
-          '''
+          script {
+            sh """
+              helm upgrade --install elasticsearch elastic/elasticsearch \
+                -n ${NAMESPACE} --create-namespace \
+                -f elk-config/elasticsearch-values.yaml \
+                --kubeconfig \$KUBECONFIG
+            """
+
+            // Wait for Elasticsearch rollout to complete
+            sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
+
+            // Get elastic password
+            def elasticPassword = sh(
+              script: "kubectl get secret elasticsearch-es-elastic-user -n ${NAMESPACE} -o go-template='{{.data.elastic | base64decode}}' --kubeconfig \$KUBECONFIG",
+              returnStdout: true
+            ).trim()
+
+            echo "Got Elastic password from secret"
+
+            // Deploy Kibana with password injected
+            sh """
+              helm upgrade --install kibana elastic/kibana \
+                -n ${NAMESPACE} \
+                -f elk-config/kibana-values.yaml \
+                --set elasticsearch.password=${elasticPassword} \
+                --kubeconfig \$KUBECONFIG --force
+            """
+
+            // Deploy Filebeat
+            sh """
+              helm upgrade --install filebeat elastic/filebeat \
+                -n ${NAMESPACE} \
+                -f elk-config/filebeat-values.yaml \
+                --kubeconfig \$KUBECONFIG --force
+            """
+          }
         }
-      }
-    }
-
-
-    stage('Deploy Kibana') {
-      steps {
-        sh 'helm upgrade --install kibana elastic/kibana -n $NAMESPACE -f elk-config/kibana-values.yaml'
-      }
-    }
-
-    stage('Deploy Filebeat') {
-      steps {
-        sh 'helm upgrade --install filebeat elastic/filebeat -n $NAMESPACE -f elk-config/filebeat-values.yaml'
       }
     }
 
     stage('Verify ELK Deployment') {
       steps {
-        sh 'kubectl get pods -n $NAMESPACE'
+        sh "kubectl get pods -n ${NAMESPACE}"
       }
     }
   }
