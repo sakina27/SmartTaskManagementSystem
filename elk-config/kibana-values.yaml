@@ -11,4 +11,8 @@ resources:
 ingress:
   enabled: false
 
-elasticsearchHosts: "https://elasticsearch-master:9200"
+elasticsearch:
+  hosts:
+    - "http://elasticsearch-master.elk.svc.cluster.local:9200"
+  username: elastic
+  password: ZPoHAZh1ZZJZ3HnR
