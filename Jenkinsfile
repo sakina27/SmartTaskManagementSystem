@@ -34,7 +34,18 @@ pipeline {
         }
       }
     }
-
+    stage('Cleanup ELK') {
+      steps {
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh """
+            helm uninstall elasticsearch -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
+            helm uninstall kibana -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
+            kubectl delete pvc -n ${NAMESPACE} --kubeconfig \$KUBECONFIG --ignore-not-found || true
+            kubectl delete namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
+          """
+        }
+      }
+    }
     stage('Add Elastic Helm Repo') {
       steps {
         sh '''
