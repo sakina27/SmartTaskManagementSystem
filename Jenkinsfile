@@ -138,7 +138,7 @@ pipeline {
 
 
             // 5. Clean up old Kibana pre-install pods if any
-            sh "kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true"
+            //sh "kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true"
 
             // 6. Deploy Kibana with the fetched elastic password
             sh """
