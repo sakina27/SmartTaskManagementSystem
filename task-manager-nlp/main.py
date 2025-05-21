@@ -1,116 +1,85 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-import shutil
+from faster_whisper import WhisperModel
+import torch
 import subprocess
 import os
-import torch
+import shutil
 import dateparser
+import requests
 
-from faster_whisper import WhisperModel
 from transformers import (
+    T5Tokenizer, T5ForConditionalGeneration,
     BertTokenizer, BertForSequenceClassification,
-    BertTokenizerFast, BertForTokenClassification,
-    T5Tokenizer, T5ForConditionalGeneration
+    BertTokenizerFast, BertForTokenClassification
 )
 
-# ----------- FastAPI Setup ----------- #
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Or restrict to frontend domain
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Directories and URLs
+//model download
+MODEL_DIR = "models"
+MODEL_DOWNLOADS = {
+    "priority_model": {
+        "path": os.path.join(MODEL_DIR, "priority_model"),
+        "url": "https://drive.google.com/file/d/1Ge4oju6JDdRo7B6PrAXyDycOtpwDAhY-/view?usp=drive_link"
+    },
+    "bert_date_ner_model_new2": {
+        "path": os.path.join(MODEL_DIR, "bert_date_ner_model_new2"),
+        "url": "https://drive.google.com/file/d/1269h1y9VbPAZUQ5qzme1VmTN802MReUX/view?usp=drive_link"
+    },
+    "tasksummarization_model": {
+        "path": os.path.join(MODEL_DIR, "tasksummarization_model"),
+        "url": "https://drive.google.com/file/d/1EPHl69jyh_A79ETTbRY24zCsrkuTKR2B/view?usp=drive_link"
+    }
+}
 
-# ----------- Load ASR Model ----------- #
-asr_model = WhisperModel("base")
-
-# ----------- Load ML Models ----------- #
-# Priority Classification
-priority_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-priority_model = BertForSequenceClassification.from_pretrained("models/priority_model")
-priority_model.eval()
-
-# Date Extraction
-date_tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
-date_model = BertForTokenClassification.from_pretrained("models/bert_date_ner_model_new2")
-date_model.eval()
 label_map = {0: 'O', 1: 'B-DATE', 2: 'I-DATE'}
 
-# Task Summarization
-summarizer_tokenizer = T5Tokenizer.from_pretrained("t5-small")
-summarizer_model = T5ForConditionalGeneration.from_pretrained("models/tasksummarization_model")
-summarizer_model.eval()
+# Lazy-loaded models
+asr_model = None
+priority_model = None
+priority_tokenizer = None
+date_model = None
+date_tokenizer = None
+summarizer_model = None
+summarizer_tokenizer = None
 
-# ----------- Request Model ----------- #
-class TextReq(BaseModel):
-    text: str
+class Task(BaseModel):
+    summary: str
+    priority: str
+    date: str
 
-# ----------- Core Inference Functions ----------- #
-def extract_priority(text):
-    inputs = priority_tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    with torch.no_grad():
-        outputs = priority_model(**inputs)
-    pred = torch.argmax(outputs.logits, dim=1).item()
-    return ["high", "medium", "low"][pred]
+@app.on_event("startup")
+async def download_all_models():
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    for name, meta in MODEL_DOWNLOADS.items():
+        await download_model_if_not_exists(meta["path"], meta["url"])
 
-def extract_date(text):
-    inputs = date_tokenizer(
-        text,
-        return_offsets_mapping=True,
-        return_tensors="pt",
-        truncation=True,
-        padding="max_length",
-        max_length=128
-    )
-    offset_mapping = inputs.pop("offset_mapping")
+async def download_model_if_not_exists(path: str, url: str):
+    if not os.path.exists(path):
+        print(f"Downloading {path} from {url}")
+        response = requests.get(url, stream=True)
+        zip_path = path + ".zip"
+        with open(zip_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        shutil.unpack_archive(zip_path, path)
+        os.remove(zip_path)
+        print(f"{path} downloaded and extracted.")
+    else:
+        print(f"{path} already exists.")
 
-    with torch.no_grad():
-        outputs = date_model(**inputs)
-
-    logits = outputs.logits
-    predictions = torch.argmax(logits, dim=2)[0].tolist()
-    offsets = offset_mapping[0]
-    tokens = date_tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
-
-    date_tokens = []
-    for pred, (start, end) in zip(predictions, offsets):
-        label = label_map[pred]
-        if label in ["B-DATE", "I-DATE"] and start != 0:
-            date_tokens.append(text[start:end])
-
-    if date_tokens:
-        date_str = ' '.join(date_tokens)
-        parsed_date = dateparser.parse(date_str)
-        if parsed_date:
-            return parsed_date.date().isoformat()
-    return "unspecified"
-
-def extract_summary(text):
-    input_text = "summarize: " + text
-    inputs = summarizer_tokenizer.encode(input_text, return_tensors="pt", max_length=128, truncation=True)
-    with torch.no_grad():
-        outputs = summarizer_model.generate(inputs, max_length=32, num_beams=4, early_stopping=True)
-    return summarizer_tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-def extract_task(text):
-    return {
-        "title": text,
-        "description": extract_summary(text),
-        "due_date": extract_date(text),
-        "priority": extract_priority(text)
-    }
-
-# ----------- FastAPI Endpoints ----------- #
-@app.post("/text-to-task")
-def text_to_task(req: TextReq):
-    return {"task": extract_task(req.text)}
+@app.get("/")
+def read_root():
+    return {"message": "Task Extractor API"}
 
 @app.post("/audio-to-task")
 async def audio_to_task(audio: UploadFile = File(...)):
+    global asr_model
+    if asr_model is None:
+        asr_model = WhisperModel("base")
+
     temp_input_path = "temp_input.webm"
     temp_output_path = "temp.wav"
 
@@ -128,13 +97,41 @@ async def audio_to_task(audio: UploadFile = File(...)):
     segments, _ = asr_model.transcribe(temp_output_path)
     transcribed_text = " ".join(segment.text for segment in segments)
 
+    os.remove(temp_input_path)
+    os.remove(temp_output_path)
+
     task = extract_task(transcribed_text)
     return {
         "text": transcribed_text,
         "task": task
     }
 
-# ----------- Run Server (for direct execution) ----------- #
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5001)
+def extract_task(text):
+    summary = extract_summary(text)
+    priority = extract_priority(text)
+    date = extract_date(text)
+    return Task(summary=summary, priority=priority, date=date)
+
+def extract_summary(text):
+    global summarizer_model, summarizer_tokenizer
+    if summarizer_model is None or summarizer_tokenizer is None:
+        path = MODEL_DOWNLOADS["tasksummarization_model"]["path"]
+        summarizer_tokenizer = T5Tokenizer.from_pretrained("t5-small")
+        summarizer_model = T5ForConditionalGeneration.from_pretrained(path)
+        summarizer_model.eval()
+
+    input_text = "summarize: " + text
+    inputs = summarizer_tokenizer.encode(input_text, return_tensors="pt", max_length=128, truncation=True)
+    with torch.no_grad():
+        outputs = summarizer_model.generate(inputs, max_length=32, num_beams=4, early_stopping=True)
+    return summarizer_tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+def extract_priority(text):
+    global priority_model, priority_tokenizer
+    if priority_model is None or priority_tokenizer is None:
+        path = MODEL_DOWNLOADS["priority_model"]["path"]
+        priority_tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+        priority_model = BertForSequenceClassification.from_pretrained(path)
+        priority_model.eval()
+
+    inputs = priority_tokenizer(t
