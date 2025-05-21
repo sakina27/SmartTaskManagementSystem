@@ -4,6 +4,7 @@ pipeline {
   environment {
     NAMESPACE = "elk"
     HELM_REPO = "https://helm.elastic.co"
+    elasticPassword = "elastic123!"
   }
 
   stages {
@@ -58,7 +59,7 @@ pipeline {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh """
             echo "Deleting old Elasticsearch PVCs in namespace ${NAMESPACE}..."
-            kubectl delete pvc -n ${NAMESPACE} -l app=elasticsearch-master --kubeconfig \$KUBECONFIG || echo 'No PVCs to delete'
+            kubectl delete pvc -n ${NAMESPACE} -l app=elasticsearch-master --ignore-not-found --wait --timeout=60s --kubeconfig \$KUBECONFIG || true
           """
         }
       }
@@ -68,19 +69,37 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           script {
-            def elasticPassword = "elastic123!"
-
             sh """
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
                 -f elk-config/elasticsearch-values.yaml \
+                --set elasticPassword=${elasticPassword} \
                 --kubeconfig \$KUBECONFIG \
                 --wait --timeout 5m
             """
 
             sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
 
-            // Cleanup stuck Kibana pre-install jobs
+            echo "Waiting for Elasticsearch to be ready and accept connections..."
+
+            sh """
+              for i in {1..30}; do
+                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://elasticsearch-master.elk.svc.cluster.local:9200)
+                if [ "\$STATUS" == "200" ]; then
+                  echo "Elasticsearch is ready!"
+                  break
+                else
+                  echo "Elasticsearch not ready yet (status: \$STATUS). Waiting 10 seconds..."
+                  sleep 10
+                fi
+              done
+
+              if [ "\$STATUS" != "200" ]; then
+                echo "Elasticsearch did not become ready in time."
+                exit 1
+              fi
+            """
+
             sh """
               kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true
             """
@@ -94,18 +113,11 @@ pipeline {
                 --wait --timeout 5m --force
             """
 
-            sh """
-              helm upgrade --install filebeat elastic/filebeat \
-                -n ${NAMESPACE} \
-                -f elk-config/filebeat-values.yaml \
-                --kubeconfig \$KUBECONFIG \
-                --wait --timeout 3m --force
-            """
+            // Optionally deploy filebeat or other components here, with similar patterns
           }
         }
       }
     }
-
 
     stage('Verify ELK Deployment') {
       steps {
@@ -115,5 +127,4 @@ pipeline {
       }
     }
   }
-
 }
