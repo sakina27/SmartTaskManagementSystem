@@ -61,35 +61,39 @@ pipeline {
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
                 -f elk-config/elasticsearch-values.yaml \
-                --kubeconfig \$KUBECONFIG
+                --kubeconfig \$KUBECONFIG \
+                --wait --timeout 5m
             """
 
-            // Wait for Elasticsearch rollout to complete
             sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
 
-            // Get elastic password
             def elasticPassword = sh(
               script: "kubectl get secret elasticsearch-master-credentials -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG | base64 --decode",
               returnStdout: true
             ).trim()
 
-            echo "Got Elastic password from secret"
+            echo "Got Elastic password from secret: ${elasticPassword.take(3)}***${elasticPassword.takeRight(3)}"
 
-            // Deploy Kibana with password injected
+            // Cleanup stuck Kibana pre-install jobs
+            sh """
+              kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true
+            """
+
             sh """
               helm upgrade --install kibana elastic/kibana \
                 -n ${NAMESPACE} \
                 -f elk-config/kibana-values.yaml \
                 --set elasticsearch.password=${elasticPassword} \
-                --kubeconfig \$KUBECONFIG --force
+                --kubeconfig \$KUBECONFIG \
+                --wait --timeout 5m --force
             """
 
-            // Deploy Filebeat
             sh """
               helm upgrade --install filebeat elastic/filebeat \
                 -n ${NAMESPACE} \
                 -f elk-config/filebeat-values.yaml \
-                --kubeconfig \$KUBECONFIG --force
+                --kubeconfig \$KUBECONFIG \
+                --wait --timeout 3m --force
             """
           }
         }
