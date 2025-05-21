@@ -34,6 +34,7 @@ pipeline {
         }
       }
     }
+
     stage('Cleanup ELK') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
@@ -46,6 +47,7 @@ pipeline {
         }
       }
     }
+
     stage('Add Elastic Helm Repo') {
       steps {
         sh '''
@@ -80,6 +82,7 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           script {
+            // Install/Upgrade Elasticsearch
             sh """
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
@@ -89,13 +92,16 @@ pipeline {
                 --wait --timeout 5m
             """
 
+            // Wait for StatefulSet rollout to complete
             sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
 
-            echo "Waiting for Elasticsearch to be ready and accept connections..."
+            // Wait extra time for ES initialization
+            sh 'echo "Waiting 30 seconds for Elasticsearch to finish initializing..." && sleep 30'
 
+            // Retry curl to check if Elasticsearch is accepting connections
             sh """
               for i in {1..30}; do
-                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://elasticsearch-master.elk.svc.cluster.local:9200)
+                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://${NAMESPACE}-master.${NAMESPACE}.svc.cluster.local:9200)
                 if [ "\$STATUS" == "200" ]; then
                   echo "Elasticsearch is ready!"
                   break
@@ -107,14 +113,15 @@ pipeline {
 
               if [ "\$STATUS" != "200" ]; then
                 echo "Elasticsearch did not become ready in time."
+                curl -v -u elastic:${elasticPassword} http://${NAMESPACE}-master.${NAMESPACE}.svc.cluster.local:9200 || true
                 exit 1
               fi
             """
 
-            sh """
-              kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true
-            """
+            // Clean up potential pre-install kibana jobs
+            sh "kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true"
 
+            // Install/Upgrade Kibana
             sh """
               helm upgrade --install kibana elastic/kibana \
                 -n ${NAMESPACE} \
@@ -123,8 +130,6 @@ pipeline {
                 --kubeconfig \$KUBECONFIG \
                 --wait --timeout 5m --force
             """
-
-            // Optionally deploy filebeat or other components here, with similar patterns
           }
         }
       }
