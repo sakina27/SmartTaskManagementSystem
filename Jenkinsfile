@@ -108,10 +108,13 @@ pipeline {
             env.elasticPassword = elasticPassword
             echo "Retrieved elastic user password from secret."
 
+            sh "kubectl port-forward svc/elasticsearch-master 9200:9200 -n ${NAMESPACE} --kubeconfig \$KUBECONFIG &
+                sleep 5"
+
             // 4. Wait for Elasticsearch to be ready (using password from secret)
             sh """
               for i in {1..30}; do
-                STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://elasticsearch-master.${NAMESPACE}.svc.cluster.local:9200)
+                STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://localhost:9200)
                 if [ "\$STATUS" == "200" ]; then
                   echo "Elasticsearch is ready!"
                   break
