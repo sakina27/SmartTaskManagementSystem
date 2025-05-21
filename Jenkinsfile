@@ -78,32 +78,11 @@ pipeline {
       }
     }
 
-    stage('Fetch Elastic Password from Secret') {
-      steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-          script {
-            def secretBase64 = sh (
-              script: "kubectl get secret elastic-credentials -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG",
-              returnStdout: true
-            ).trim()
-
-            def decodedPassword = sh (
-              script: "echo ${secretBase64} | base64 --decode",
-              returnStdout: true
-            ).trim()
-
-            env.elasticPassword = decodedPassword
-
-            echo "Fetched elasticPassword from Kubernetes secret"
-          }
-        }
-      }
-    }
-
     stage('Deploy ELK Stack') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           script {
+            // 1. Install/upgrade Elasticsearch WITHOUT --set elasticPassword (letting Helm generate it)
             sh """
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
@@ -112,11 +91,27 @@ pipeline {
                 --wait --timeout 5m --force
             """
 
+            // 2. Wait for Elasticsearch rollout
             sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
 
+            // 3. Fetch generated elastic user password from Kubernetes secret
+            def secretBase64 = sh (
+              script: "kubectl get secret elasticsearch-es-elastic-user -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG",
+              returnStdout: true
+            ).trim()
+
+            def elasticPassword = sh (
+              script: "echo ${secretBase64} | base64 --decode",
+              returnStdout: true
+            ).trim()
+
+            env.elasticPassword = elasticPassword
+            echo "Retrieved elastic user password from secret."
+
+            // 4. Wait for Elasticsearch to be ready (using password from secret)
             sh """
               for i in {1..30}; do
-                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${env.elasticPassword} http://elasticsearch-master.${NAMESPACE}.svc.cluster.local:9200)
+                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://elasticsearch-master.${NAMESPACE}.svc.cluster.local:9200)
                 if [ "\$STATUS" == "200" ]; then
                   echo "Elasticsearch is ready!"
                   break
@@ -132,13 +127,15 @@ pipeline {
               fi
             """
 
+            // 5. Clean up old Kibana pre-install pods if any
             sh "kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true"
 
+            // 6. Deploy Kibana with the fetched elastic password
             sh """
               helm upgrade --install kibana elastic/kibana \
                 -n ${NAMESPACE} \
                 -f elk-config/kibana-values.yaml \
-                --set elasticsearch.password=${env.elasticPassword} \
+                --set elasticsearch.password=${elasticPassword} \
                 --kubeconfig \$KUBECONFIG \
                 --wait --timeout 5m --force
             """
@@ -146,6 +143,7 @@ pipeline {
         }
       }
     }
+
 
     stage('Verify ELK Deployment') {
       steps {
