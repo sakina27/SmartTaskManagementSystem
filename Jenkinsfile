@@ -113,6 +113,10 @@ pipeline {
 
             // 4. Wait for Elasticsearch to be ready (using password from secret)
             sh """
+              kubectl port-forward svc/elasticsearch-master 9200:9200 -n ${NAMESPACE} --kubeconfig \$KUBECONFIG > /dev/null 2>&1 &
+              PORT_FORWARD_PID=\$!
+              sleep 5
+
               for i in {1..30}; do
                 STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://localhost:9200)
                 if [ "\$STATUS" == "200" ]; then
@@ -126,9 +130,13 @@ pipeline {
 
               if [ "\$STATUS" != "200" ]; then
                 echo "Elasticsearch did not become ready in time."
+                kill \$PORT_FORWARD_PID
                 exit 1
               fi
+
+              kill \$PORT_FORWARD_PID
             """
+
 
             // 5. Clean up old Kibana pre-install pods if any
             sh "kubectl delete pods -n ${NAMESPACE} -l job-name=pre-install-kibana-kibana --kubeconfig \$KUBECONFIG || true"
