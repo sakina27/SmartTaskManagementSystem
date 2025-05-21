@@ -57,6 +57,8 @@ pipeline {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           script {
+            def elasticPassword = "elastic123!"
+
             sh """
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
@@ -66,13 +68,6 @@ pipeline {
             """
 
             sh "kubectl rollout status statefulset/elasticsearch-master -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
-
-            def elasticPassword = sh(
-              script: "kubectl get secret elasticsearch-master-credentials -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG | base64 --decode",
-              returnStdout: true
-            ).trim()
-
-            echo "Got Elastic password from secret: ${elasticPassword.take(3)}***${elasticPassword.takeRight(3)}"
 
             // Cleanup stuck Kibana pre-install jobs
             sh """
@@ -99,6 +94,7 @@ pipeline {
         }
       }
     }
+
 
     stage('Verify ELK Deployment') {
       steps {

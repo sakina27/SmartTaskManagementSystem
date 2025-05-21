@@ -19,6 +19,10 @@ persistence:
 
 minimumMasterNodes: 1
 
+security:
+  enabled: true
+  elasticPassword: "elastic123!"
+
 nodeSelector: {}
 tolerations: []
 affinity: {}
