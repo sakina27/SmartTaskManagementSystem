@@ -53,6 +53,17 @@ pipeline {
       }
     }
 
+    stage('Clean Up Old Elasticsearch PVCs') {
+      steps {
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh """
+            echo "Deleting old Elasticsearch PVCs in namespace ${NAMESPACE}..."
+            kubectl delete pvc -n ${NAMESPACE} -l app=elasticsearch-master --kubeconfig \$KUBECONFIG || echo 'No PVCs to delete'
+          """
+        }
+      }
+    }
+
     stage('Deploy ELK Stack') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
