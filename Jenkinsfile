@@ -129,7 +129,11 @@ pipeline {
               exit 1
             fi
 
-            kill \$PORT_FORWARD_PID
+            if [ -n "$PORT_FORWARD_PID" ]; then
+              kill $PORT_FORWARD_PID
+            else
+              echo "PORT_FORWARD_PID is not set; skipping kill."
+            fi
             """
 
 
