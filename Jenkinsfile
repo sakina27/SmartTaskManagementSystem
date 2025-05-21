@@ -45,7 +45,11 @@ pipeline {
 
     stage('Create ELK Namespace') {
       steps {
-        sh "kubectl create namespace ${NAMESPACE} || echo 'Namespace ${NAMESPACE} already exists'"
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh """
+            kubectl create namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG || echo 'Namespace ${NAMESPACE} already exists'
+          """
+        }
       }
     }
 
@@ -94,8 +98,9 @@ pipeline {
 
     stage('Verify ELK Deployment') {
       steps {
-        sh "kubectl get pods -n ${NAMESPACE}"
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          sh "kubectl get pods -n ${NAMESPACE} --kubeconfig \$KUBECONFIG"
+        }
       }
     }
-  }
 }
