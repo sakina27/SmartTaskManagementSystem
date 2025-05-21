@@ -23,10 +23,6 @@ security:
   enabled: true
   elasticPassword: "elastic123!"
 
-esConfig:
-  elasticsearch.yml: |
-    discovery.type: single-node
-
 nodeSelector: {}
 tolerations: []
 affinity: {}
