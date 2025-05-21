@@ -96,7 +96,7 @@ pipeline {
 
             // 3. Fetch generated elastic user password from Kubernetes secret
             def secretBase64 = sh (
-              script: "kubectl get secret elasticsearch-es-elastic-user -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG",
+              script: "kubectl get secret elasticsearch-master-credentials -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG",
               returnStdout: true
             ).trim()
 
