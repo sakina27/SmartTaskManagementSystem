@@ -65,7 +65,7 @@ pipeline {
 
             // Get elastic password
             def elasticPassword = sh(
-              script: "kubectl get secret elasticsearch-es-elastic-user -n ${NAMESPACE} -o go-template='{{.data.elastic | base64decode}}' --kubeconfig \$KUBECONFIG",
+              script: "kubectl get secret elasticsearch-master-credentials -n ${NAMESPACE} -o jsonpath='{.data.password}' --kubeconfig \$KUBECONFIG | base64 --decode",
               returnStdout: true
             ).trim()
 
