@@ -101,7 +101,7 @@ pipeline {
             // Retry curl to check if Elasticsearch is accepting connections
             sh """
               for i in {1..30}; do
-                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://${NAMESPACE}-master.${NAMESPACE}.svc.cluster.local:9200)
+                STATUS=\$(curl -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} http://elasticsearch-master.${NAMESPACE}.svc.cluster.local:9200)
                 if [ "\$STATUS" == "200" ]; then
                   echo "Elasticsearch is ready!"
                   break
@@ -113,7 +113,6 @@ pipeline {
 
               if [ "\$STATUS" != "200" ]; then
                 echo "Elasticsearch did not become ready in time."
-                curl -v -u elastic:${elasticPassword} http://${NAMESPACE}-master.${NAMESPACE}.svc.cluster.local:9200 || true
                 exit 1
               fi
             """
