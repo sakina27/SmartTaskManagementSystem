@@ -108,8 +108,6 @@ pipeline {
             env.elasticPassword = elasticPassword
             echo "Retrieved elastic user password from secret."
 
-            sh "kubectl port-forward svc/elasticsearch-master 9200:9200 -n ${NAMESPACE} --kubeconfig \$KUBECONFIG &
-                sleep 5"
 
             // 4. Wait for Elasticsearch to be ready (using password from secret)
             sh """#!/bin/bash
