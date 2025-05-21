@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y ffmpeg
 WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt .
+COPY task-manager-nlp/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
