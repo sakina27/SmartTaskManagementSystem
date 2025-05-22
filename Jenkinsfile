@@ -59,18 +59,24 @@ pipeline {
 
     stage('Run Ansible Playbook') {
         steps {
-             script {
-                        // Define variables for paths inside pipeline
-                        def ansibleDir = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible"
-                        def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
+            withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
+                script {
+                    // Define variables for paths inside pipeline
+                    def ansibleDir = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible"
+                    def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
 
-                        // Run wsl.exe using Sysnative path from a bat step (no powershell)
-                        bat """
-                        C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
-                        """
-             }
+                    // Write vault password to vault_pass.txt inside Windows workspace
+                    // Note: Using bat step with triple quotes for multiline Windows cmd commands
+                    bat """
+                    echo %VAULT_PASS% > C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SmartTaskManagementSystem\\task-manager-ansible\\vault_pass.txt
+                    C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
+                    del C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SmartTaskManagementSystem\\task-manager-ansible\\vault_pass.txt
+                    """
+                }
+            }
         }
     }
+
 
 
     stage('Deploy to Kubernetes') {
