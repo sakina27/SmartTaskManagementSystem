@@ -8,10 +8,16 @@ pipeline {
   }
 
   stages {
-    stage('Checkout Code') {
+    /* stage('Checkout Code') {
       steps {
         git branch: 'main', credentialsId: 'github-ssh-key', url: 'git@github.com:sakina27/SmartTaskManagementSystem.git'
       }
+    } */
+
+    stage('Checkout Code') {
+       steps {
+         git branch: 'main', credentialsId: 'Github', url: 'git@github.com:sakina27/SmartTaskManagementSystem.git'
+       }
     }
 
     /* stage('Build & Push Images with Ansible') {
