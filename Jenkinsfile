@@ -16,7 +16,7 @@ pipeline {
 
     stage('Checkout Code') {
        steps {
-         git branch: 'main', credentialsId: 'Github', url: 'git@github.com:sakina27/SmartTaskManagementSystem.git'
+         git branch: 'main', credentialsId: 'Github', url: 'https://github.com/sakina27/SmartTaskManagementSystem.git'
        }
     }
 
