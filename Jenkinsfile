@@ -58,24 +58,32 @@ pipeline {
     } */
 
     stage('Run Ansible Playbook') {
-        steps {
-            withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
-                script {
-                    // Define variables for paths inside pipeline
-                    def ansibleDir = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible"
-                    def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
+      steps {
+        withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
+          script {
+            def ansibleDir = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible"
+            def winAnsibleDir = "C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SmartTaskManagementSystem\\task-manager-ansible"
+            def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
 
-                    // Write vault password to vault_pass.txt inside Windows workspace
-                    // Note: Using bat step with triple quotes for multiline Windows cmd commands
-                    bat """
-                    echo %VAULT_PASS% > C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SmartTaskManagementSystem\\task-manager-ansible\\vault_pass.txt
-                    C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
-                    del C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\SmartTaskManagementSystem\\task-manager-ansible\\vault_pass.txt
-                    """
-                }
-            }
+            bat """
+            echo Creating temporary vault_pass.sh script...
+            echo #!/bin/sh > "${winAnsibleDir}\\vault_pass.sh"
+            echo echo ${VAULT_PASS} >> "${winAnsibleDir}\\vault_pass.sh"
+
+            echo Setting script executable in WSL...
+            C:\\Windows\\Sysnative\\wsl.exe chmod +x ${ansibleDir}/vault_pass.sh
+
+            echo Running Ansible playbook...
+            C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.sh -e project_root=${wslWorkspace} --become
+
+            echo Cleaning up...
+            del "${winAnsibleDir}\\vault_pass.sh"
+            """
+          }
         }
+      }
     }
+
 
 
 
