@@ -66,18 +66,21 @@ pipeline {
             def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
 
             bat """
+            @echo off
             echo Creating temporary vault_pass.sh script...
-            echo #!/bin/sh > "${winAnsibleDir}\\vault_pass.sh"
-            echo echo ${VAULT_PASS} >> "${winAnsibleDir}\\vault_pass.sh"
+
+            REM Use echo. to write LF-only line endings cleanly via WSL echo
+            echo #!/bin/sh > "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
+            echo echo %VAULT_PASS%>> "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
 
             echo Setting script executable in WSL...
-            C:\\Windows\\Sysnative\\wsl.exe chmod +x ${ansibleDir}/vault_pass.sh
+            C:\\Windows\\Sysnative\\wsl.exe chmod +x /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh
 
             echo Running Ansible playbook...
-            C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.sh -e project_root=${wslWorkspace} --become
+            C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/inventory /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/playbook.yml --vault-password-file /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh -e project_root=/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem --become
 
             echo Cleaning up...
-            del "${winAnsibleDir}\\vault_pass.sh"
+            del "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
             """
           }
         }
