@@ -91,15 +91,20 @@ pipeline {
             // 4. Wait for Elasticsearch to be ready (using password from secret)
             sh """#!/bin/bash
 
-            for i in {1..30}; do
-              STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://user.local:30443)
-              if [ "\$STATUS" == "200" ]; then
-                echo "Elasticsearch is ready!"
-                break
-              else
-                echo "Elasticsearch not ready yet (status: \$STATUS). Waiting 10 seconds..."
-                sleep 10
-              fi
+             kubectl port-forward svc/elasticsearch-master 9200:9200 -n ${NAMESPACE} --kubeconfig \$KUBECONFIG > /dev/null 2>&1 &
+             PORT_FORWARD_PID=\$!
+             sleep 5
+
+             for i in {1..30}; do
+                 STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://localhost:9200)
+                 STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://user.local:30443)
+                 if [ "\$STATUS" == "200" ]; then
+                    echo "Elasticsearch is ready!"
+                    break
+                else
+                    echo "Elasticsearch not ready yet (status: \$STATUS). Waiting 10 seconds..."
+                    sleep 10
+                fi
             done
 
             if [ "\$STATUS" != "200" ]; then
