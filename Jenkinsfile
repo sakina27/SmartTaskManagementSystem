@@ -42,7 +42,7 @@ pipeline {
             helm uninstall elasticsearch -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
             helm uninstall kibana -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
             kubectl delete pvc -n ${NAMESPACE} --kubeconfig \$KUBECONFIG --ignore-not-found  --timeout 60s || true
-            kubectl delete namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
+            kubectl delete namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG --timeout 60s || true
           """
         }
       }
