@@ -87,6 +87,7 @@ pipeline {
               helm upgrade --install elasticsearch elastic/elasticsearch \
                 -n ${NAMESPACE} --create-namespace \
                 -f elk-config/elasticsearch-values.yaml \
+                --set sysctlInitContainer.enabled=true \
                 --kubeconfig \$KUBECONFIG \
                 --wait --timeout 5m --force
             """
