@@ -87,7 +87,7 @@ pipeline {
        }
     }
 
-    stage('Deploy ELK') {
+    stage('Deploy filebeat') {
        steps {
           dir('filebeat'){
           withKubeConfig([credentialsId: 'k8s-config']) {
