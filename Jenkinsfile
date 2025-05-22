@@ -67,7 +67,6 @@ pipeline {
              bat """
              wsl ansible-playbook -i ${wslWorkspace}/inventory ${wslWorkspace}/playbook.yml --vault-password-file ${wslWorkspace}/vault_pass.txt -e project_root=${wslWorkspace} --become
              """
-             }
           }
        }
     }
