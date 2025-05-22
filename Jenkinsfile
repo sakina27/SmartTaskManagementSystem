@@ -41,7 +41,7 @@ pipeline {
           sh """
             helm uninstall elasticsearch -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
             helm uninstall kibana -n ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
-            kubectl delete pvc -n ${NAMESPACE} --kubeconfig \$KUBECONFIG --ignore-not-found || true
+            kubectl delete pvc -n ${NAMESPACE} --kubeconfig \$KUBECONFIG --ignore-not-found  --timeout 60s || true
             kubectl delete namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG || true
           """
         }
@@ -62,17 +62,6 @@ pipeline {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh """
             kubectl create namespace ${NAMESPACE} --kubeconfig \$KUBECONFIG || echo 'Namespace ${NAMESPACE} already exists'
-          """
-        }
-      }
-    }
-
-    stage('Clean Up Old Elasticsearch PVCs') {
-      steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-          sh """
-            echo "Deleting old Elasticsearch PVCs in namespace ${NAMESPACE}..."
-            kubectl delete pvc -n ${NAMESPACE} -l app=elasticsearch-master --ignore-not-found --wait --timeout=60s --kubeconfig \$KUBECONFIG || true
           """
         }
       }
