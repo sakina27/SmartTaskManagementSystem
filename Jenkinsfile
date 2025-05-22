@@ -97,7 +97,6 @@ pipeline {
 
              for i in {1..30}; do
                  STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://localhost:9200)
-                 STATUS=\$(curl -k -s -o /dev/null -w '%{http_code}' -u elastic:${elasticPassword} https://user.local:30443)
                  if [ "\$STATUS" == "200" ]; then
                     echo "Elasticsearch is ready!"
                     break
