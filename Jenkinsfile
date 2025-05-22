@@ -63,6 +63,17 @@ pipeline {
       }
     }
 
+    stage('Debug Paths') {
+      steps {
+        bat '''
+          echo %PROCESSOR_ARCHITECTURE%
+          echo %PATH%
+          dir C:\\Windows\\System32\\wsl.exe
+          dir C:\\Windows\\Sysnative\\wsl.exe
+        '''
+      }
+    }
+
 
     stage('Run Ansible Playbook') {
       steps {
@@ -77,8 +88,7 @@ pipeline {
           echo "WSL Ansible Dir: ${ansibleDir}"
 
           bat """
-          C:\\Windows\\Sysnative\\wsl.exe ls ${ansibleDir}
-          C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
+          powershell -Command "C:\\Windows\\System32\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become"
           """
         }
       }
