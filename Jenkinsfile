@@ -57,6 +57,13 @@ pipeline {
       }
     } */
 
+    stage('Debug Environment') {
+      steps {
+        bat 'whoami && echo %PATH% && where wsl'
+      }
+    }
+
+
     stage('Run Ansible Playbook') {
       steps {
         script {
