@@ -33,9 +33,9 @@ pipeline {
       }
     } */
 
-    stage('Deploy to Kubernetes') {
+    /* stage('Deploy to Kubernetes') {
       steps {
-        withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh 'kubectl apply -k task-manager-k8s/base/'
         }
       }
@@ -43,7 +43,7 @@ pipeline {
 
     stage('Deploy ElasticSearch, kibana & logstash') {
       steps {
-         withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
+         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
             sh 'kubectl apply -k elk-config'
          }
       }
@@ -61,6 +61,19 @@ pipeline {
           }
         }
       }
+    } */
+
+    stage('Deploy to Kubernetes') {
+       steps {
+          withKubeConfig([credentialsId: 'k8s-config']) {
+               bat '''
+                  kubectl config view
+                  kubectl cluster-info
+                  kubectl get nodes
+                  kubectl apply -k task-manager-k8s/base/
+               '''
+          }
+       }
     }
   }
 }
