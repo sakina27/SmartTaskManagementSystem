@@ -57,6 +57,21 @@ pipeline {
       }
     } */
 
+    stage('Run Ansible Playbook') {
+       steps {
+          script {
+             // Convert Jenkins Windows path to WSL Linux path by replacing C:\ with /mnt/c/
+             def wslWorkspace = env.WORKSPACE.replaceAll('^[A-Za-z]:', '').replace('\\', '/').replaceFirst('^/', '/mnt/c/')
+
+             // Run the ansible-playbook command inside WSL
+             bat """
+             wsl ansible-playbook -i ${wslWorkspace}/inventory ${wslWorkspace}/playbook.yml --vault-password-file ${wslWorkspace}/vault_pass.txt -e project_root=${wslWorkspace} --become
+             """
+             }
+          }
+       }
+    }
+
     stage('Deploy to Kubernetes') {
        steps {
           withKubeConfig([credentialsId: 'k8s-config']) {
