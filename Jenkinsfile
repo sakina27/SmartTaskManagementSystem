@@ -70,8 +70,34 @@ pipeline {
                   kubectl config view
                   kubectl cluster-info
                   kubectl get nodes
+                  kubectl create namespace ingress-nginx
                   kubectl apply -k task-manager-k8s/base/
                '''
+          }
+       }
+    }
+
+    stage('Deploy ELK') {
+       steps {
+          withKubeConfig([credentialsId: 'k8s-config']) {
+              bat '''
+                 kubectl apply -k elk-config
+              '''
+          }
+       }
+    }
+
+    stage('Deploy ELK') {
+       steps {
+          dir('filebeat'){
+          withKubeConfig([credentialsId: 'k8s-config']) {
+             bat '''
+                 kubectl apply -f filebeat-configmap.yaml
+                 kubectl apply -f filebeat-daemonset.yaml
+                 kubectl apply -f filebeat-rbac.yaml
+             '''
+             }
+          }
           }
        }
     }
