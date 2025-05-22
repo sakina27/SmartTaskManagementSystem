@@ -96,7 +96,6 @@ pipeline {
                  kubectl apply -f filebeat-daemonset.yaml
                  kubectl apply -f filebeat-rbac.yaml
              '''
-             }
           }
           }
        }
