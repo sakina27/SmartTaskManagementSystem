@@ -57,41 +57,19 @@ pipeline {
       }
     } */
 
-    stage('Debug Environment') {
-      steps {
-        bat 'whoami && echo %PATH% && where wsl'
-      }
-    }
-
-    stage('Debug Paths') {
-      steps {
-        bat '''
-          echo %PROCESSOR_ARCHITECTURE%
-          echo %PATH%
-          dir C:\\Windows\\System32\\wsl.exe
-          dir C:\\Windows\\Sysnative\\wsl.exe
-        '''
-      }
-    }
-
-
     stage('Run Ansible Playbook') {
-      steps {
-        script {
-          def wslWorkspace = env.WORKSPACE
-            .replaceAll('^[A-Za-z]:', '')     // Remove drive letter
-            .replaceAll('\\\\', '/')          // Replace backslashes
-            .replaceFirst('^/', '/mnt/c/')    // Prepend /mnt/c
+        steps {
+             script {
+                        // Define variables for paths inside pipeline
+                        def ansibleDir = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible"
+                        def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
 
-          def ansibleDir = "${wslWorkspace}/task-manager-ansible"
-
-          echo "WSL Ansible Dir: ${ansibleDir}"
-
-          bat """
-          powershell -Command "C:\\Windows\\System32\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become"
-          """
+                        // Run wsl.exe using Sysnative path from a bat step (no powershell)
+                        bat """
+                        C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
+                        """
+             }
         }
-      }
     }
 
 
