@@ -35,7 +35,7 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+        withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
           sh 'kubectl apply -k task-manager-k8s/base/'
         }
       }
@@ -43,7 +43,7 @@ pipeline {
 
     stage('Deploy ElasticSearch, kibana & logstash') {
       steps {
-         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+         withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
             sh 'kubectl apply -k elk-config'
          }
       }
@@ -52,7 +52,7 @@ pipeline {
     stage('Deploy filebeats') {
       steps {
         dir('filebeats') {
-          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
+          withCredentials([file(credentialsId: 'k8s-config', variable: 'KUBECONFIG')]) {
              sh '''
                   kubectl apply -f filebeat-configmap.yaml
                   kubectl apply -f filebeat-daemonset.yaml
