@@ -69,12 +69,14 @@ pipeline {
             @echo off
             echo Creating temporary vault_pass.sh script...
 
-            REM Use echo. to write LF-only line endings cleanly via WSL echo
             echo #!/bin/sh > "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
             echo echo %VAULT_PASS%>> "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
 
             echo Setting script executable in WSL...
             C:\\Windows\\Sysnative\\wsl.exe chmod +x /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh
+
+            echo Converting to Unix line endings...
+            C:\\Windows\\Sysnative\\wsl.exe dos2unix /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh
 
             echo Running Ansible playbook...
             C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/inventory /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/playbook.yml --vault-password-file /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh -e project_root=/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem --become
@@ -82,6 +84,7 @@ pipeline {
             echo Cleaning up...
             del "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"
             """
+
           }
         }
       }
