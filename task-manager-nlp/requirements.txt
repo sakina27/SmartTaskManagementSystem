@@ -7,3 +7,4 @@ dateparser
 pydantic
 sentencepiece
 python-multipart
+gdown
