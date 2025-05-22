@@ -70,8 +70,8 @@ pipeline {
           echo "WSL Ansible Dir: ${ansibleDir}"
 
           bat """
-          C:\\Windows\\System32\\wsl.exe ls ${ansibleDir}
-          C:\\Windows\\System32\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
+          C:\\Windows\\Sysnative\\wsl.exe ls ${ansibleDir}
+          C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i ${ansibleDir}/inventory ${ansibleDir}/playbook.yml --vault-password-file ${ansibleDir}/vault_pass.txt -e project_root=${wslWorkspace} --become
           """
         }
       }
