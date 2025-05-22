@@ -1,12 +1,6 @@
 pipeline {
   agent any
 
-  environment {
-    NAMESPACE = "elk"
-    HELM_REPO = "https://helm.elastic.co"
-    // Remove elasticPassword from here
-  }
-
   stages {
     /* stage('Checkout Code') {
       steps {
