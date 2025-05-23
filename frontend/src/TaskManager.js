@@ -160,7 +160,7 @@ function TaskManager() {
         if (!description) return;
         try {
             setLoading(true);
-            const res = await axios.post('https://taskmanager.com:5001/text-to-task', { text: description });
+            const res = await axios.post('https://taskmanager.com:30443/api/nlp/text-to-task', { text: description });
             const extracted = res.data.task;
             if (extracted) {
                 if (extracted.description) setDescription(extracted.description);
@@ -195,7 +195,7 @@ function TaskManager() {
 
                 try {
                     setLoading(true);
-                    const nlpRes = await axios.post("https://taskmanager.com:5001/audio-to-task", formData);
+                    const nlpRes = await axios.post("https://taskmanager.com:30443/api/nlp/audio-to-task", formData);
                     const extractedTask = nlpRes.data.task;
                     if (extractedTask) {
                         if (extractedTask.title) setTitle(extractedTask.title);

@@ -37,6 +37,20 @@ spec:
                 name: comment-service
                 port:
                   number: 8080
+          - path: /text-to-task
+            pathType: Prefix
+            backend:
+              service:
+                name: nlp-service
+                port:
+                  number: 5001
+          - path: /audio-to-task
+            pathType: Prefix
+            backend:
+              service:
+                name: nlp-service
+                port:
+                  number: 5001
           - path: /
             pathType: Prefix
             backend:

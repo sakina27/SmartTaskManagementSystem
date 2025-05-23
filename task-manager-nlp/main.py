@@ -23,7 +23,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or restrict to frontend domain
+    allow_origins=[
+       "https://taskmanager.com:30443",
+       "http://localhost:3000"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +35,7 @@ app.add_middleware(
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
 
 @app.get("/actuator/health")
 def health_check():
@@ -163,11 +167,12 @@ def extract_task(text):
     }
 
 # ----------- FastAPI Endpoints ----------- #
-@app.post("/text-to-task")
+
+@app.post("/api/nlp/text-to-task")
 def text_to_task(req: TextReq):
     return {"task": extract_task(req.text)}
 
-@app.post("/audio-to-task")
+@app.post("/api/nlp/audio-to-task")
 async def audio_to_task(audio: UploadFile = File(...)):
     temp_input_path = "temp_input.webm"
     temp_output_path = "temp.wav"

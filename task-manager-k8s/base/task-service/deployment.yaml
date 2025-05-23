@@ -22,5 +22,8 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 10
-            periodSeconds: 10
+            initialDelaySeconds: 20        # Give it more time if your app starts slowly
+            periodSeconds: 10              # Probe every 10 seconds
+            timeoutSeconds: 5              # Wait up to 5 seconds for a response
+            failureThreshold: 5            # Fail only after 5 consecutive failures
+            successThreshold: 1

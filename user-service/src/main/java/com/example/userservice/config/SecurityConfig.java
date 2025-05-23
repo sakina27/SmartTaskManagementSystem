@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,9 +15,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -57,7 +60,7 @@ public class SecurityConfig {
         return authenticationManagerBuilder.build();
     }
 
-    @Bean
+    /*@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors().configurationSource(corsConfigurationSource())
@@ -99,7 +102,43 @@ public class SecurityConfig {
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }*/
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors().configurationSource(corsConfigurationSource())
+                .and()
+                .csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeRequests()
+                .requestMatchers(EndpointRequest.to(HealthEndpoint.class)).permitAll()
+                .requestMatchers(
+                        "/api/users/register",
+                        "/api/users/login",
+                        "/actuator/health/**",
+                        "/oauth2/**"
+                ).permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .oauth2Login()
+                .userInfoEndpoint()
+                .userService(customOAuth2UserService)
+                .and()
+                .and()
+                .exceptionHandling()
+                .defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        new AntPathRequestMatcher("/actuator/**")
+                )
+                .and()
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
+
 
     /*public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         *//*http

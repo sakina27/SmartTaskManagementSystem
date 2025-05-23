@@ -14,7 +14,7 @@ pipeline {
        }
     }
 
-     stage('Build & Push Images with Ansible') {
+     /* stage('Build & Push Images with Ansible') {
       steps {
         dir('task-manager-ansible') {
           withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
@@ -55,9 +55,9 @@ pipeline {
           }
         }
       }
-    }
+    } */
 
-    /* stage('Run Ansible Playbook') {
+      stage('Run Ansible Playbook') {
       steps {
         withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
           script {
@@ -107,28 +107,30 @@ pipeline {
        }
     }
 
-    stage('Deploy ELK') {
+    stage('Elastic Search & Kibana') {
        steps {
-          withKubeConfig([credentialsId: 'k8s-config']) {
-              bat '''
-                 kubectl apply -k elk-config
-              '''
+          dir('docker-compose'){
+             withKubeConfig([credentialsId: 'k8s-config']) {
+                bat '''
+                     docker-compose up -d
+                 '''
+             }
           }
        }
     }
 
+
     stage('Deploy filebeat') {
        steps {
-          dir('filebeat'){
+          dir('docker-compose'){
           withKubeConfig([credentialsId: 'k8s-config']) {
              bat '''
-                 kubectl apply -f filebeat-configmap.yaml
-                 kubectl apply -f filebeat-daemonset.yaml
-                 kubectl apply -f filebeat-rbac.yaml
+                 kubectl apply -f filebeat-kubernetes.yaml
+                 kubectl rollout restart daemonset filebeat -n kube-system
              '''
           }
           }
        }
-    } */
+    }
   }
 }
