@@ -79,7 +79,7 @@ pipeline {
             C:\\Windows\\Sysnative\\wsl.exe dos2unix /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh
 
             echo Running Ansible playbook...
-            C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/inventory /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/playbook.yml --vault-password-file /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh -e project_root=/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem --become
+            C:\\Windows\\Sysnative\\wsl.exe ansible-playbook -i /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/inventory /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/playbook.yml --vault-password-file /mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem/task-manager-ansible/vault_pass.sh -e project_root=/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem --become --become-method=sudo
 
             echo Cleaning up...
             del "%WORKSPACE%\\task-manager-ansible\\vault_pass.sh"

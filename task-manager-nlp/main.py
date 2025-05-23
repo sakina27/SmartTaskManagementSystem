@@ -170,6 +170,7 @@ def extract_task(text):
 
 @app.post("/api/nlp/text-to-task")
 def text_to_task(req: TextReq):
+    task = extract_task(req.text)  # First create the task
     print(f"[📤 RESPONSE] Sending task: {task}\n")
     return {"task": extract_task(req.text)}
 
