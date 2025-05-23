@@ -14,7 +14,7 @@ pipeline {
        }
     }
 
-    /* stage('Build & Push Images with Ansible') {
+     stage('Build & Push Images with Ansible') {
       steps {
         dir('task-manager-ansible') {
           withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
@@ -25,9 +25,9 @@ pipeline {
           }
         }
       }
-    } */
+    }
 
-    /* stage('Deploy to Kubernetes') {
+     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           sh 'kubectl apply -k task-manager-k8s/base/'
@@ -55,9 +55,9 @@ pipeline {
           }
         }
       }
-    } */
+    }
 
-    stage('Run Ansible Playbook') {
+    /* stage('Run Ansible Playbook') {
       steps {
         withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
           script {
@@ -129,6 +129,6 @@ pipeline {
           }
           }
        }
-    }
+    } */
   }
 }
