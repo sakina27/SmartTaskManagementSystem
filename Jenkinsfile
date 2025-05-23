@@ -57,7 +57,7 @@ pipeline {
       }
     } */
 
-      stage('Run Ansible Playbook') {
+      /* stage('Run Ansible Playbook') {
       steps {
         withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
           script {
@@ -88,7 +88,21 @@ pipeline {
           }
         }
       }
-    }
+    } */
+
+    stage('Run Ansible Playbook') {
+          steps {
+            withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASSWORD')]) {
+              ansiblePlaybook(
+                playbook: 'task-manager-ansible/playbook.yml',
+                inventory: 'task-manager-ansible/inventory',
+                vaultCredentialsId: 'ANSIBLE_VAULT_PASS',  // Reference Jenkins credential directly
+                extras: '-e project_root=${WORKSPACE} --become',
+                installation: 'ansible'  // Matches the name from Step 2
+              )
+            }
+          }
+        }
 
 
 

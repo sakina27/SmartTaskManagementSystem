@@ -170,6 +170,7 @@ def extract_task(text):
 
 @app.post("/api/nlp/text-to-task")
 def text_to_task(req: TextReq):
+    print(f"[📤 RESPONSE] Sending task: {task}\n")
     return {"task": extract_task(req.text)}
 
 @app.post("/api/nlp/audio-to-task")
@@ -192,6 +193,7 @@ async def audio_to_task(audio: UploadFile = File(...)):
     transcribed_text = " ".join(segment.text for segment in segments)
 
     task = extract_task(transcribed_text)
+    print(f"[📤 RESPONSE] Sending task: {task}\n")
     return {
         "text": transcribed_text,
         "task": task

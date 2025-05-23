@@ -162,6 +162,7 @@ function TaskManager() {
             setLoading(true);
             const res = await axios.post('https://taskmanager.com:30443/api/nlp/text-to-task', { text: description });
             const extracted = res.data.task;
+            console.log("[NLP RESPONSE]", res.data);
             if (extracted) {
                 if (extracted.description) setDescription(extracted.description);
                 if (extracted.dueDate) setDueDate(extracted.dueDate);
