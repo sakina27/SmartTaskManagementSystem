@@ -163,9 +163,11 @@ function TaskManager() {
             const res = await axios.post('https://taskmanager.com:30443/api/nlp/text-to-task', { text: description });
             const extracted = res.data.task;
             console.log("[NLP RESPONSE]", res.data);
+
             if (extracted) {
+                if(extracted.title) setTitle(extracted.title)
                 if (extracted.description) setDescription(extracted.description);
-                if (extracted.dueDate) setDueDate(extracted.dueDate);
+                if (extracted.due_date) setDueDate(extracted.due_date);
                 if (extracted.priority) setPriority(extracted.priority.toLowerCase());
                 alert("Fields auto-filled from description!");
             } else {
@@ -178,6 +180,12 @@ function TaskManager() {
             setLoading(false);
         }
     };
+
+    function formatDateToDDMMYYYY(isoDate) {
+        if (!isoDate) return '';
+        const [year, month, day] = isoDate.split('-');
+        return `${day}-${month}-${year}`;
+    }
 
     const startRecording = async () => {
         try {

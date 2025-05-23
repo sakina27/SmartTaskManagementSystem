@@ -1,7 +1,6 @@
 - name: Setup Task Manager Project
   hosts: localhost
   become: true
-  become_method: sudo
   vars_files:
     - group_vars/vault.yml
   roles:
