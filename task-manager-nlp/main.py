@@ -29,7 +29,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
+@app.get("/actuator/health")
+def health_check():
+    return {"status": "ok"}
 
 MODEL_DIR = "models"
 os.makedirs(MODEL_DIR, exist_ok=True)

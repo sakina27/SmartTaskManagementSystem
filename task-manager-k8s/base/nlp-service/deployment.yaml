@@ -20,7 +20,7 @@ spec:
             - containerPort: 5001
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /health
               port: 5001
             initialDelaySeconds: 10
             periodSeconds: 10

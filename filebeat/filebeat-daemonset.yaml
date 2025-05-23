@@ -19,25 +19,16 @@ spec:
       containers:
         - name: filebeat
           image: docker.elastic.co/beats/filebeat:8.9.0
-          args:
-            - "-e"
-            - "-c"
-            - "/etc/filebeat.yml"
-          env:
-            - name: NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
+          args: [
+            "-e",
+            "-c", "/etc/filebeat.yml"
+          ]
+          securityContext:
+            runAsUser: 0   # <-- ✅ this is required to access /var/run/docker.sock
           volumeMounts:
             - name: config
               mountPath: /etc/filebeat.yml
               subPath: filebeat.yml
-            - name: varlogcontainers
-              mountPath: /var/log/containers
-              readOnly: true
-            - name: varlogpods
-              mountPath: /var/log/pods
-              readOnly: true
             - name: dockersock
               mountPath: /var/run/docker.sock
               readOnly: true
@@ -45,12 +36,6 @@ spec:
         - name: config
           configMap:
             name: filebeat-config
-        - name: varlogcontainers
-          hostPath:
-            path: /var/log/containers
-        - name: varlogpods
-          hostPath:
-            path: /var/log/pods
         - name: dockersock
           hostPath:
             path: /var/run/docker.sock
