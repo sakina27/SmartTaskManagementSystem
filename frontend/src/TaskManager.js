@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaMicrophone } from 'react-icons/fa';
+import { FaMicrophone, FaTasks, FaGoogle, FaSignOutAlt, FaPlus, FaRegCommentDots, FaCheckCircle, FaRegCircle } from 'react-icons/fa';
 import './TaskManager.css';
 
 function TaskManager() {
@@ -250,17 +250,43 @@ function TaskManager() {
         window.location.href = '/';
     };
 
+    // Helper for rendering priority badge
+    const renderPriorityBadge = (priority) => (
+        <span className={`priority-badge priority-${priority}`}>
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
+        </span>
+    );
+
+    // Helper for rendering status chip
+    const renderStatusChip = (status) => (
+        <span className={`status-chip status-${status.toLowerCase()}`}>
+            {status === "Complete" ? <FaCheckCircle style={{marginRight: 4}}/> : <FaRegCircle style={{marginRight: 4}}/>}
+            {status}
+        </span>
+    );
+
+    // Helper for rendering avatar (first letter of userId or 'U')
+    const renderAvatar = (userName) => (
+        <span className="avatar">
+            {userName ? userName.charAt(0).toUpperCase() : 'U'}
+        </span>
+    );
+
     return (
         <div className="task-container">
-{/* Navigation Bar */}
-            <div className="navbar">
-                <h2 className="logo">Smart Task Manager</h2>
+            {/* Navigation Bar */}
+            <div className="navbar glass">
+                <div className="logo">
+                    <FaTasks style={{color: "#7f53ac", fontSize: "2rem"}} />
+                    <span>Task Magic</span>
+                </div>
                 <div className="nav-links">
                     <button
                         className={activeView === 'create-task' ? 'nav-btn active' : 'nav-btn'}
                         onClick={() => setActiveView('create-task')}
+                        title="Create Task"
                     >
-                        Create Task
+                        <FaPlus /> <span className="hide-mobile">Create</span>
                     </button>
                     <button
                         className={activeView === 'show-tasks' ? 'nav-btn active' : 'nav-btn'}
@@ -268,8 +294,9 @@ function TaskManager() {
                             setActiveView('show-tasks');
                             fetchTasks();
                         }}
+                        title="Show Tasks"
                     >
-                        Show Tasks
+                        <FaTasks /> <span className="hide-mobile">Tasks</span>
                     </button>
                     <button
                         className={activeView === 'google-calendar' ? 'nav-btn active' : 'nav-btn'}
@@ -277,147 +304,186 @@ function TaskManager() {
                             setActiveView('google-calendar');
                             handleFetchFromGoogleCalendar();
                         }}
+                        title="Fetch from Google Calendar"
                     >
-                        Fetch from Google
+                        <FaGoogle /> <span className="hide-mobile">Google</span>
                     </button>
-                    <button className="nav-btn logout" onClick={handleLogout}>
-                        Logout
+                    <button className="nav-btn logout" onClick={handleLogout} title="Logout">
+                        <FaSignOutAlt /> <span className="hide-mobile">Logout</span>
                     </button>
                 </div>
             </div>
+
             {/* Create Task View */}
             {activeView === 'create-task' && (
-                <div className="task-form">
-                    <h2>Create Task</h2>
+                <div className="task-form glass">
+                    <h2>
+                        <FaPlus style={{color: "#7f53ac", marginRight: 8}} />
+                        Create Task
+                    </h2>
                     <form onSubmit={handleAddTask}>
-                        <input type="text" placeholder="Task Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-                        <input type="text" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required />
-
-                    <button
-                        type="button"
-                        onClick={handleAnalyzeDescription}
-                        disabled={!description || loading}
-                        className="btn-secondary"
-                    >
-                        Analyze Description with AI
-                    </button>
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Due Date</label>
-                            <input
-                                type="date"
-                                value={dueDate}
-                                onChange={(e) => setDueDate(e.target.value)}
-                                required
-                                className="input-field"
-                            />
+                        <input
+                            type="text"
+                            placeholder="Task Title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="text"
+                            placeholder="Description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAnalyzeDescription}
+                            disabled={!description || loading}
+                            className="btn-secondary"
+                        >
+                            ✨ AI Analyze
+                        </button>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Due Date</label>
+                                <input
+                                    type="date"
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                    required
+                                    className="input-field"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Priority</label>
+                                <select
+                                    value={priority}
+                                    onChange={(e) => setPriority(e.target.value)}
+                                    required
+                                    className="input-field"
+                                >
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="form-group">
-                            <label>Priority</label>
-                            <select
-                                value={priority}
-                                onChange={(e) => setPriority(e.target.value)}
-                                required
-                                className="input-field"
-                            >
-                                <option value="high">High</option>
-                                <option value="medium">Medium</option>
-                                <option value="low">Low</option>
-                            </select>
-                        </div>
+                        <button type="submit" disabled={loading} className="btn-primary">
+                            {loading ? 'Adding...' : 'Add Task'}
+                        </button>
+                    </form>
+                    <div className="audio-input card glass">
+                        <h3>
+                            <FaMicrophone style={{marginRight: 8, color: "#7f53ac"}} />
+                            Or Create Task via Voice
+                        </h3>
+                        <button onClick={handleRecording} className={`mic-button ${isRecording ? 'recording' : ''}`}>
+                            <FaMicrophone />
+                            {isRecording ? ' Stop Recording' : ' Start Recording'}
+                        </button>
                     </div>
-                    <button type="submit" disabled={loading} className="btn-primary">
-                        {loading ? 'Adding...' : 'Add Task'}
-                    </button>
-                </form>
-
-                <div className="audio-input card">
-                    <h3>Or Create Task via Voice</h3>
-                    <button onClick={handleRecording} className={`mic-button ${isRecording ? 'recording' : ''}`}>
-                        <FaMicrophone />
-                        {isRecording ? ' Stop Recording' : ' Start Recording'}
-                    </button>
-                </div>
                 </div>
             )}
 
-
             {/* Show Tasks View */}
             {activeView === 'show-tasks' && (
-                <div className="task-list">
-                    <h3>Tasks</h3>
+                <div className="task-list glass">
+                    <h3>
+                        <FaTasks style={{marginRight: 8, color: "#7f53ac"}} />
+                        Tasks
+                    </h3>
                     {loading ? (
                         <p>Loading tasks...</p>
                     ) : tasks.length === 0 ? (
                         <p>No tasks found.</p>
                     ) : (
                         tasks.map((task) => (
-                            <div key={task.id} className="task-card">
-                            <h4>{task.title}</h4>
-                            <p className="description">{task.description}</p>
-                            <p className="due-date"><strong>Due:</strong> {task.dueDate}</p>
-                            <p className="priority"><strong>Priority:</strong> <span>{task.priority}</span></p>
-                            <button onClick={() => toggleComments(task.id)}>
-                                {expandedTasks[task.id] ? 'Hide Comments' : 'Show Comments'}
-                            </button>
-
-                            {expandedTasks[task.id] && (
-                                <div className="comments-section">
-                                    <div className="comments-list">
-                                        {commentsMap[task.id]?.length ? (
-                                            commentsMap[task.id].map((comment) => (
-                                                <div key={comment.id} className="comment-item">
-                                                    {editingCommentId === comment.id ? (
-                                                        <>
-            <textarea
-                value={editedCommentContent}
-                onChange={(e) => setEditedCommentContent(e.target.value)}
-                placeholder="Edit your comment..."
-            />
-                                                            <div className="comment-actions">
-                                                                <button onClick={() => handleUpdateComment(comment, task.id)}>Save</button>
-                                                                <button onClick={cancelEditing}>Cancel</button>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <p>{comment.content}</p>
-                                                            <p className="timestamp">🗓️ {new Date(comment.createdAt).toLocaleString()}</p>
-                                                            <div className="comment-actions">
-                                                                <button onClick={() => startEditing(comment)}>Edit</button>
-                                                                <button onClick={() => handleDeleteComment(comment.id, task.id)}>Delete</button>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-
-                                            ))
-                                        ) : (
-                                            <p>No comments yet.</p>
-                                        )}
-                                    </div>
-                                    <div className="add-comment">
-                                        <input
-                                            type="text"
-                                            placeholder="Write a comment..."
-                                            value={commentText}
-                                            onChange={(e) => setCommentText(e.target.value)}
-                                        />
-                                        <button onClick={() => handleAddComment(task.id)}>Post</button>
-                                    </div>
+                            <div key={task.id} className={`task-card priority-${task.priority} glass-card`}>
+                                <h4>
+                                    {task.title}
+                                    {renderPriorityBadge(task.priority)}
+                                </h4>
+                                <p className="description">{task.description}</p>
+                                <p className="due-date">
+                                    <strong>Due:</strong> {task.dueDate}
+                                </p>
+                                <p>
+                                    <strong>Status:</strong> {renderStatusChip(task.status)}
+                                </p>
+                                <div className="task-actions">
+                                    <button
+                                        onClick={() => toggleTaskStatus(task.id, task.status)}
+                                        className="btn-secondary"
+                                    >
+                                        {task.status === 'Complete' ? 'Mark Incomplete' : 'Mark Complete'}
+                                    </button>
+                                    <button
+                                        onClick={() => toggleComments(task.id)}
+                                        className="btn-secondary"
+                                        style={{ marginLeft: '8px' }}
+                                    >
+                                        <FaRegCommentDots style={{marginRight: 4}}/>
+                                        {expandedTasks[task.id] ? 'Hide Comments' : 'Show Comments'}
+                                    </button>
                                 </div>
-                            )}
-                            <p><strong>Status:</strong> {task.status}</p>
-                            <button onClick={() => toggleTaskStatus(task.id, task.status)} className="btn-secondary">
-                                Mark as {task.status === 'Complete' ? 'Incomplete' : 'Complete'}
-                            </button>
-                        </div>
-                    ))
-                )}
-            </div>
+                                {expandedTasks[task.id] && (
+                                    <div className="comments-section glass">
+                                        <div className="comments-list">
+                                            {commentsMap[task.id]?.length ? (
+                                                commentsMap[task.id].map((comment, idx) => (
+                                                    <div key={comment.id} className="comment-item">
+                                                        <div className="comment-header">
+                                                            {renderAvatar(comment.userName)}
+                                                            <span className="timestamp">
+                                                                🗓️ {new Date(comment.createdAt).toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        {editingCommentId === comment.id ? (
+                                                            <>
+                                                                <textarea
+                                                                    value={editedCommentContent}
+                                                                    onChange={(e) => setEditedCommentContent(e.target.value)}
+                                                                    placeholder="Edit your comment..."
+                                                                />
+                                                                <div className="comment-actions">
+                                                                    <button onClick={() => handleUpdateComment(comment, task.id)}>Save</button>
+                                                                    <button onClick={cancelEditing}>Cancel</button>
+                                                                </div>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p>{comment.content}</p>
+                                                                <div className="comment-actions">
+                                                                    <button onClick={() => startEditing(comment)}>Edit</button>
+                                                                    <button onClick={() => handleDeleteComment(comment.id, task.id)}>Delete</button>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p>No comments yet.</p>
+                                            )}
+                                        </div>
+                                        <div className="add-comment">
+                                            <input
+                                                type="text"
+                                                placeholder="Write a comment..."
+                                                value={commentText}
+                                                onChange={(e) => setCommentText(e.target.value)}
+                                            />
+                                            <button onClick={() => handleAddComment(task.id)}>Post</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    )}
+                </div>
             )}
         </div>
-            )
+    );
 }
 
 export default TaskManager;
