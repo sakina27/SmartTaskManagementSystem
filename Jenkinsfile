@@ -91,18 +91,35 @@ pipeline {
     } */
 
     stage('Run Ansible Playbook') {
-          steps {
-            withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASSWORD')]) {
-              ansiblePlaybook(
-                playbook: 'task-manager-ansible/playbook.yml',
-                inventory: 'task-manager-ansible/inventory',
-                vaultCredentialsId: 'ANSIBLE_VAULT_PASS',  // Reference Jenkins credential directly
-                extras: '-e project_root=${WORKSPACE} --become',
-                installation: 'ansible'  // Matches the name from Step 2
-              )
-            }
+      steps {
+        withCredentials([string(credentialsId: 'ANSIBLE_VAULT_PASS', variable: 'VAULT_PASS')]) {
+          script {
+            def wslWorkspace = "/mnt/c/ProgramData/Jenkins/.jenkins/workspace/SmartTaskManagementSystem"
+
+            bat """
+            @echo off
+            :: Create password file without trailing newline
+            <NUL set /p="%VAULT_PASS%" > "%WORKSPACE%\\vault_pass.txt"
+
+            :: Run Ansible via WSL
+            C:\\Windows\\Sysnative\\wsl.exe bash -c '
+              chmod 600 "${wslWorkspace}/vault_pass.txt"
+              ansible-playbook \
+                -i "${wslWorkspace}/task-manager-ansible/inventory" \
+                "${wslWorkspace}/task-manager-ansible/playbook.yml" \
+                --vault-password-file "${wslWorkspace}/vault_pass.txt" \
+                -e project_root="${wslWorkspace}" \
+                --become
+            '
+
+            :: Cleanup
+            del "%WORKSPACE%\\vault_pass.txt"
+            """
           }
         }
+      }
+    }
+
 
 
 
