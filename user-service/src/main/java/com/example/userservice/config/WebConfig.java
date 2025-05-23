@@ -13,7 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
         // Add CORS mappings for the frontend
         registry.addMapping("/**")  // This will allow CORS for all paths
                 .allowedOrigins("http://localhost:3000")
-                .allowedOrigins("http://user.local:30080")// Change this to your frontend URL
+                .allowedOrigins("https://taskmanager.com:30443")// Change this to your frontend URL
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")  // Allow all headers
                 .allowCredentials(true);  // Allow credentials (cookies, etc.)

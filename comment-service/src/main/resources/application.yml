@@ -7,3 +7,10 @@ spring:
       host: mongodb
       port: 27017
       database: task_db
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator

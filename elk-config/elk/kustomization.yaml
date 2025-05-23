@@ -8,3 +8,4 @@ resources:
   - kibana-service.yaml
   - logstash-deployment.yaml
   - logstash-service.yaml
+  - logstash-config.yaml

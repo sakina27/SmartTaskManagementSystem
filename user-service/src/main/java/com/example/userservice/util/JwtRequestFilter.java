@@ -38,11 +38,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        System.out.println("Inside JwtRequestFilter"+path);
-        System.out.println("Inside JwtRequestFilter"+path.matches("^/api/users/[^/]+$"));
+        /*System.out.println("Inside JwtRequestFilter"+path);
+        System.out.println("Inside JwtRequestFilter"+path.matches("^/api/users/[^/]+$"));*/
         if (method.equals("GET") && path.matches("^/api/users/[^/]+$")) {
+            System.out.println("JWT Filter: Skipping JWT check for " + path);
             chain.doFilter(request, response); // Skip JWT for public user fetch
             return;
+        }
+
+        System.out.println("JWT Filter: Incoming request " + request.getMethod() + " " + request.getRequestURI());
+
+        if (path.equals("/api/users/register") || path.equals("/api/users/login") || path.startsWith("/oauth2/")) {
+            // Check if token exists in header
+            if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+                // No JWT token, skip filter here to allow unauthenticated access
+                System.out.println("JWT Filter: Skipping JWT check for " + path);
+                chain.doFilter(request, response);
+                return;
+            }
+            // If JWT token is present, do NOT skip — continue below to validate it
         }
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {

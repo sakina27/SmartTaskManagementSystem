@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: nlp-service
-          image: sakina2726/nlp-service:latest
+          image: sakina2726/service-nlp:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 5001

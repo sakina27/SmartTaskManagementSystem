@@ -33,6 +33,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody User user) {
         try {
+            System.out.println("Register controller called: ");
             if (userService.getUserByEmail(user.getEmail()) != null) {
                 return ResponseEntity.badRequest().body("User already exists.");
             }

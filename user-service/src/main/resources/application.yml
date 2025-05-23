@@ -32,5 +32,12 @@ jwt:
   secret-key: cr666N7wIV+JHnv78pWtcfAekL4YXd9gbnJMs8SJ9sI=
   expiration-time: 3600000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+
 
 

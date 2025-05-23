@@ -12,6 +12,6 @@ data:
     output {
       elasticsearch {
         hosts => ["http://elasticsearch:9200"]
-        index => "kubernetes-logs-%{+YYYY.MM.dd}"
+        index => "filebeat-test-%{+YYYY.MM.dd}"
       }
     }

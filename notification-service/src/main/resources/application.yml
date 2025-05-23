@@ -17,10 +17,17 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: sakinabaranwala123@gmail.com
-    password: fxetecyddtffolaa
+    password: vjxkiykseydoneir
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
